@@ -3,12 +3,14 @@
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import org.ehcache.Cache;
+import org.ehcache.Cache.Entry;
 import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
@@ -25,11 +27,11 @@ public class Main {
 		Map<String, String> mapTest = new HashMap<>();
 		
 		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder() 
-			    .withCache("preConfigured",CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, String.class, ResourcePoolsBuilder.heap(10))) 
+			    .withCache("preConfigured",CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, String.class, ResourcePoolsBuilder.heap(trezentosMil))) 
 			    .build(); 
 		cacheManager.init(); 
 		
-		Cache<String, String> cache = cacheManager.createCache("myCache", CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, String.class, ResourcePoolsBuilder.heap(10)));
+		Cache<String, String> cache = cacheManager.createCache("myCache", CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, String.class, ResourcePoolsBuilder.heap(trezentosMil)));
 
 		String keyConst = "KeyName";
 		String valueConst = "Val";
@@ -50,6 +52,20 @@ public class Main {
 		
 	}
 
+	
+	private int countCacheItems(Cache<String, String> cache) {
+		Iterator<Entry<String, String>> it = cache.iterator();
+		HashMap<String, String> hash = new HashMap<>();
+		while (it.hasNext()) {
+			Entry<String, String> k = it.next();
+			String v = cache.get(k.getKey());
+			if (v != null) {
+				hash.put(k.getKey(), v);
+			}
+		}
+		return hash.size();	
+	}
+	
 	private void searchInEhCache(List<String> searches, Cache<String, String> cache) {
 		String k;
 		String v;
@@ -59,6 +75,7 @@ public class Main {
 			v = cache.get(k);
 		}		
 		System.out.println("Finalizou as "+Instant.now());
+		System.out.println("Cache count: "+countCacheItems(cache));
 	}
 
 	private void searchInMap(List<String> searches, Map<String, String> mapTest) {
@@ -69,7 +86,9 @@ public class Main {
 			k = (String) iterator.next();
 			v = mapTest.get(k);
 		}
+		
 		System.out.println("Finalizou as "+Instant.now());
+		System.out.println(mapTest.size());
 	}
 
 	private List<String> createSearchLists(String keyConst) {
